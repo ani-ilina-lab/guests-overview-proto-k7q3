@@ -111,6 +111,7 @@ tr.exp td{color:var(--mut)}tr.exp td a.pl{color:var(--mut)}
 .toast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
 .toast button{color:#E5CF8A;font-weight:600}
 .stub{border:1px dashed var(--line);border-radius:12px;padding:56px 20px;text-align:center;color:var(--mut)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:10px 0 14px}.toolbar input[type=search]{border:1px solid #c6d0de;border-radius:6px;padding:9px 12px;width:260px;font:inherit;background:white}.toggle{display:flex;align-items:center;gap:8px;font-size:13px}.toggle input{accent-color:#85723d}.editdate{color:var(--acc);text-decoration:underline;text-align:left}.modal label{display:block;margin-top:12px;font-size:13px}.modal input[type=datetime-local]{padding:7px;border:1px solid #c6d0de;border-radius:5px;font:inherit}.pi input{accent-color:#85723d}.inactive td{color:#9696a0}.inactive .pl{color:#9696a0}.plist{max-height:260px}.toast{pointer-events:none}.toolbar input:focus,.btn:focus{outline:2px solid #85723d}
 </style></head>
 <body>
 
@@ -139,52 +140,20 @@ tr.exp td{color:var(--mut)}tr.exp td a.pl{color:var(--mut)}
 
 <script>
 (function(){
-var TODAY=new Date(2026,10,16);
 var ME='Inez Skraban';
-var SEED=[
- {id:1,name:'Emma Müller',email:'emma.muller@test.sbx',project:'BMW commercial advertising3',owner:ME,sc:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],bo:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],exp:'2026-12-31'},
- {id:2,name:'Emma Müller',email:'emma.muller@test.sbx',project:'Projekt Inez 12/11',owner:ME,sc:[0, 1, 2, 10],bo:[],exp:'2026-11-20'},
- {id:3,name:'Jonas Weber',email:'j.weber@lumafilm.de',project:'Projekt Inez 12/11',owner:ME,sc:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],bo:[],exp:null},
- {id:4,name:'Luca Moretti',email:'luca.moretti@postwerk.de',project:'Test Inez 25/10',owner:ME,sc:[0, 1, 2],bo:[],exp:null},
- {id:5,name:'Sofia Rossi',email:'sofia@rossi-studio.it',project:'Test Inez 25/10',owner:ME,sc:[0, 2, 10],bo:[],exp:'2026-11-14'},
- {id:6,name:'Marc Dubois',email:'marc.dubois@agence-ci.fr',project:'Greenfield spot 2026',owner:ME,sc:[0, 1, 2, 10],bo:[0, 1, 2, 9],exp:null},
- {id:7,name:'Marc Dubois',email:'marc.dubois@agence-ci.fr',project:'LLK',owner:'Anna Keller',sc:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],bo:[0, 1, 2, 3, 6, 9],exp:'2027-01-15'},
- {id:8,name:'Hannah Becker',email:'hannah@beckerfilm.com',project:'BMW iX3 Commercial',owner:'Anna Keller',sc:[0, 1, 2, 10],bo:[],exp:'2026-11-30'},
- {id:9,name:'Lea Fischer',email:'lea.fischer@studio-nord.de',project:'LLK',owner:'Anna Keller',sc:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],bo:[],exp:'2026-11-18'},
- {id:10,name:'Pierre Laurent',email:'p.laurent@agence-ci.fr',project:'Spot Volkswagen Q1',owner:'Tom Brandt',sc:[0, 2, 10],bo:[0, 1, 2, 9],exp:null},
- {id:11,name:'Jonas Weber',email:'j.weber@lumafilm.de',project:'Spot Volkswagen Q1',owner:'Tom Brandt',sc:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],bo:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],exp:'2026-12-10'},
- {id:12,name:'Nina Hofmann',email:'nina@hofmann-post.de',project:'Spot Volkswagen Q1',owner:'Tom Brandt',sc:[0, 1, 2],bo:[],exp:'2026-11-01'}
-];
-var PER=10;
-var S={role:'admin',rows:null,sort:{k:'name',d:1},page:1,tab:'guests',last:null};
-function load(){try{var j=sessionStorage.getItem('gp');S.rows=j?JSON.parse(j):null}catch(e){}
-  if(!S.rows)S.rows=JSON.parse(JSON.stringify(SEED))}
-function save(){try{sessionStorage.setItem('gp',JSON.stringify(S.rows))}catch(e){}}
-load();
-
-function d(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2],23,59)}
-function pad(n){return (n<10?'0':'')+n}
-function fmt(s){var x=d(s);return pad(x.getDate())+'/'+pad(x.getMonth()+1)+'/'+x.getFullYear()+', 23:59'}
-function days(s){return Math.round((d(s)-TODAY)/864e5)}
-function isExp(r){return r.exp&&days(r.exp)<0}
-function rel(r){var n=days(r.exp);
-  if(n<0)return Math.abs(n)===1?'yesterday':Math.abs(n)+' days ago';
-  if(n===0)return 'today';if(n===1)return 'tomorrow';return 'in '+n+' days'}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function $(i){return document.getElementById(i)}
-
-function scoped(){return S.rows.filter(function(r){return S.role==='admin'||r.owner===ME})}
-function visible(){
-  var a=scoped().slice();
-  var k=S.sort.k,dir=S.sort.d;
-  a.sort(function(x,y){
-    var A,B;
-    if(k==='exp'){A=x.exp||'9999';B=y.exp||'9999'}
-    else if(k==='by'){A=x.owner;B=y.owner}
-    else{A=String(x[k]).toLowerCase();B=String(y[k]).toLowerCase()}
-    return (A<B?-1:A>B?1:0)*dir||x.id-y.id});
-  return a}
-
+var seed=[
+{id:1,name:'Emma Müller',email:'emma.muller@example.com',project:'Project A',owner:ME,by:ME,sc:[0,1,2,10],bo:[0,1],exp:'2027-12-31T23:59',status:'active'},
+{id:2,name:'Emma Müller',email:'emma.muller@example.com',project:'Project B',owner:ME,by:'Anna Keller',sc:[0,1,2],bo:[],exp:'',status:'active'},
+{id:3,name:'',email:'guest@example.com',project:'Project A',owner:ME,by:ME,sc:[0,1],bo:[],exp:'',status:'pending'},
+{id:4,name:'Jonas Weber',email:'jonas.weber@example.com',project:'Project C',owner:'Anna Keller',by:'Anna Keller',sc:[0,1,2],bo:[0],exp:'2027-11-30T18:00',status:'active'},
+{id:5,name:'Luca Moretti',email:'luca.moretti@example.com',project:'Project B',owner:ME,by:ME,sc:[0,1],bo:[],exp:'2026-01-01T12:00',status:'expired'},
+{id:6,name:'Sofia Rossi',email:'sofia.rossi@example.com',project:'Project A',owner:ME,by:ME,sc:[0,2],bo:[0],exp:'',status:'removed'}];
+var S={role:'admin',tab:'guests',rows:[],sort:'name',dir:1,query:'',removed:false};
+try{S.rows=JSON.parse(sessionStorage.getItem('gp2'))||structuredClone(seed)}catch(e){S.rows=structuredClone(seed)}
+function save(){sessionStorage.setItem('gp2',JSON.stringify(S.rows))}
+function $(x){return document.getElementById(x)}
+function esc(x){return String(x||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function fmt(s){if(!s)return 'Unlimited access';var p=s.split('T'), d=p[0].split('-');return d[1]+'/'+d[2]+'/'+d[0]+', '+(p[1]||'00:00')}
 var PERMS={
  sc:{name:'SCOPE+',groups:[
   ['Viewing',['View Working Budget','View Bid letter','View Change history']],
@@ -195,117 +164,22 @@ var PERMS={
   ['Editing',['Edit project info','Edit Master Data','Edit Key Parameters & Deals Management','Edit calculation info (name/status/notes)','Edit Contract Management','Edit documents']],
   ['Other',['Preview & export documents','Restore changes from Change history']]]}
 };
-function total(k){return PERMS[k].groups.reduce(function(a,g){return a+g[1].length},0)}
-function permSummary(r){return 'SCOPE+ '+r.sc.length+'/'+total('sc')+' · BUYOUT+ '+r.bo.length+'/'+total('bo')}
-function permCell(r){
-  return '<button class="permb" data-perm="'+r.id+'"><b>SCOPE+ '+r.sc.length+' of '+total('sc')+'</b><b>BUYOUT+ '+r.bo.length+' of '+total('bo')+'</b><span class="s2">View permissions</span></button>'}
-function expCell(r){
-  if(!r.exp)return 'No expiry';
-  return fmt(r.exp)+(isExp(r)?'<span class="badge">Expired</span>':'')+'<span class="s2">'+rel(r)+'</span>'}
 
-function th(label,k,w){
-  var on=S.sort.k===k;
-  return '<th class="s" data-k="'+k+'"'+(w?' style="width:'+w+'"':'')+'>'+label+'<span class="ar">'+(on?(S.sort.d>0?'↑':'↓'):'')+'</span></th>'}
-
-function renderTable(){
-  var all=visible(),admin=S.role==='admin';
-  var pages=Math.max(1,Math.ceil(all.length/PER));
-  if(S.page>pages)S.page=pages;
-  var rows=all.slice((S.page-1)*PER,S.page*PER);
-  var h='';
-  if(!all.length){
-    h='<div class="empty"><b>No guests yet</b>'+(admin?'Guests invited to any project will appear here.':'Guests you invite to your projects will appear here.<br>Use “Share” on a project to invite someone.')+'</div>';
-  }else{
-    h='<div class="tw"><table><thead><tr>'+th('Name','name','17%')+th('Email','email','22%')+th('Project','project','20%')+
-      '<th style="width:15%">Permissions</th>'+th('Access until','exp','17%')+(admin?th('Invited by','by','11%'):'')+'<th></th></tr></thead><tbody>'+
-      rows.map(function(r){
-        return '<tr class="'+(isExp(r)?'exp':'')+'"><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td>'+
-         '<td><a class="pl" data-open="'+r.id+'">'+esc(r.project)+'</a></td><td>'+permCell(r)+'</td><td>'+expCell(r)+'</td>'+
-         (admin?'<td>'+esc(r.owner)+'</td>':'')+
-         '<td class="act"><button class="btn ghost" data-rev="'+r.id+'">Revoke access</button></td></tr>'}).join('')+
-      '</tbody></table></div>';
-  }
-  var from=all.length?(S.page-1)*PER+1:0,to=Math.min(S.page*PER,all.length);
-  h+='<div class="foot"><span class="hint"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#6b6b6b" stroke-width="1.3"><circle cx="7" cy="7" r="6"/><path d="M7 6.2v3.6M7 4v.1"/></svg>Permissions and access dates are set when a project is shared and can’t be changed here.</span>'+
-     '<span class="pg"><span>'+from+'–'+to+' of '+all.length+'</span><button id="prev"'+(S.page<=1?' disabled':'')+'>‹</button><button id="next"'+(S.page>=pages?' disabled':'')+'>›</button></span></div>';
-  $('tbl').innerHTML=h;
-  var hh=document.querySelectorAll('th.s');
-  Array.prototype.forEach.call(hh,function(t){t.onclick=function(){var k=t.getAttribute('data-k');
-    if(S.sort.k===k)S.sort.d*=-1;else S.sort={k:k,d:1};S.page=1;renderTable()}});
-  Array.prototype.forEach.call(document.querySelectorAll('[data-rev]'),function(b){b.onclick=function(){askRevoke(+b.getAttribute('data-rev'))}});
-  Array.prototype.forEach.call(document.querySelectorAll('[data-open]'),function(b){b.onclick=function(){toast('Opens project “'+(S.rows.filter(function(r){return r.id==b.getAttribute('data-open')})[0].project)+'” (not part of this prototype)',1)}});
-  Array.prototype.forEach.call(document.querySelectorAll('[data-perm]'),function(b){b.onclick=function(){showPerms(+b.getAttribute('data-perm'))}});
-  var p=$('prev'),n=$('next');p.onclick=function(){S.page--;renderTable()};n.onclick=function(){S.page++;renderTable()};
-}
-
-function render(){
-  var admin=S.role==='admin';
-  $('links').innerHTML=['Home','Projects','Contacts'].concat(admin?['Admin panel']:[]).map(function(x){
-    var on=admin?x==='Admin panel':x==='Projects';return '<a class="'+(on?'on':'')+'">'+x+'</a>'}).join('');
-  $('user').innerHTML=admin?'Super Admin<small>super_admin@mail.com</small>':ME+'<small>Project owner</small>';
-  $('title').textContent=admin?'Admin panel':'Projects';
-  $('scopeNote').textContent=admin?'Scope: all projects':'Scope: only projects owned by '+ME;
-  var tabs=admin?[['users','Users'],['roles','Roles permissions'],['company','Company settings'],['guests','Guests']]:
-                 [['active','Active'],['templates','Templates'],['archived','Archived'],['guests','Guests']];
-  var seg='<div class="seg">'+tabs.map(function(t){return '<button data-t="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+(t[0]==='guests'?'<sup>NEW</sup>':'')+'</button>'}).join('')+'</div>';
-  if(S.tab==='guests'){
-    $('tabsBar').innerHTML=seg;
-    $('content').innerHTML='<div id="tbl"></div>';
-    renderTable();
-  }else{
-    $('tabsBar').innerHTML=seg;
-    $('content').innerHTML='<div class="stub">“'+tabs.filter(function(t){return t[0]===S.tab})[0][1]+'” is not part of this prototype.<br>Switch back to <b>Guests</b>.</div>';
-  }
-  Array.prototype.forEach.call(document.querySelectorAll('[data-t]'),function(b){b.onclick=function(){S.tab=b.getAttribute('data-t');render()}});
-  Array.prototype.forEach.call(document.querySelectorAll('#roleTog button'),function(b){b.className=b.getAttribute('data-r')===S.role?'on':''});
-}
-
-/* permissions modal */
-var PTAB='sc';
-function showPerms(id,tab){
-  var r=S.rows.filter(function(x){return x.id===id})[0];if(!r)return;
-  PTAB=tab||'sc';var P=PERMS[PTAB],have=r[PTAB],n=0;
-  var body=P.groups.map(function(g){
-    return '<div class="pg">'+g[0]+'</div>'+g[1].map(function(nm){var ok=have.indexOf(n++)>-1;
-      return '<div class="pi'+(ok?'':' no')+'"><span class="cb'+(ok?' on':'')+'">'+(ok?'✓':'')+'</span>'+nm+'</div>'}).join('')}).join('');
-  $('modal').innerHTML='<h3>Permissions<button id="x" aria-label="Close">×</button></h3>'+
-   '<p><b>'+esc(r.name)+'</b> · '+esc(r.project)+'<br><span style="color:var(--mut)">Set when the project was shared. Read-only here.</span></p>'+
-   '<div class="seg" style="margin-top:14px;display:flex"><button style="flex:1" data-pt="sc" class="'+(PTAB==='sc'?'on':'')+'">SCOPE+ ('+r.sc.length+'/'+total('sc')+')</button><button style="flex:1" data-pt="bo" class="'+(PTAB==='bo'?'on':'')+'">BUYOUT+ ('+r.bo.length+'/'+total('bo')+')</button></div>'+
-   '<div class="plist">'+body+'</div>'+
-   '<div class="acts"><button class="btn ghost" id="no">Close</button></div>';
-  $('scrim').className='scrim on';$('x').onclick=$('no').onclick=closeM;
-  Array.prototype.forEach.call(document.querySelectorAll('[data-pt]'),function(b){b.onclick=function(){showPerms(id,b.getAttribute('data-pt'))}});
-}
-/* revoke */
-var pend=null;
-function askRevoke(id){
-  var r=S.rows.filter(function(x){return x.id===id})[0];if(!r)return;pend=r;
-  $('modal').innerHTML='<h3>Revoke access?<button id="x" aria-label="Close">×</button></h3>'+
-   '<p><b>'+esc(r.name)+'</b> will lose access to this project immediately. Their access to other projects is not affected.</p>'+
-   '<div class="sum"><div><span>Guest</span><b>'+esc(r.email)+'</b></div><div><span>Project</span><b>'+esc(r.project)+'</b></div>'+
-   '<div><span>Permissions</span><b>'+permSummary(r)+'</b></div>'+
-   '<div><span>Access until</span><b>'+(r.exp?fmt(r.exp):'No expiry')+'</b></div></div>'+
-   '<div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn solid" id="yes">Revoke access</button></div>';
-  $('scrim').className='scrim on';
-  $('x').onclick=$('no').onclick=closeM;
-  $('yes').onclick=function(){
-    var rr=pend,i=S.rows.indexOf(rr);S.last={row:rr,i:i};S.rows.splice(i,1);save();closeM();render();
-    toast('Access revoked for '+rr.name+' · '+rr.project,0,true)};
-  $('yes').focus();
-}
-function closeM(){$('scrim').className='scrim';pend=null}
-$('scrim').onclick=function(e){if(e.target===$('scrim'))closeM()};
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
-
-var tt;
-function toast(t,plain,undo){
-  $('toastTxt').textContent=t;$('undo').style.display=undo?'':'none';
-  $('toast').className='toast on';clearTimeout(tt);tt=setTimeout(function(){$('toast').className='toast'},undo?7000:3200)}
-$('undo').onclick=function(){if(S.last){S.rows.splice(S.last.i,0,S.last.row);S.last=null;save();render();$('toast').className='toast'}};
-
-$('roleTog').onclick=function(e){var r=e.target.getAttribute&&e.target.getAttribute('data-r');if(r&&r!==S.role){S.role=r;S.tab='guests';S.page=1;render()}};
-$('reset').onclick=function(){S.rows=JSON.parse(JSON.stringify(SEED));S.last=null;S.page=1;save();render();toast('Demo data restored',1)};
-render();
+function total(k){return PERMS[k].groups.reduce((a,g)=>a+g[1].length,0)}
+function scope(){S.rows.forEach(r=>{if((r.status==='active'||r.status==='pending')&&r.exp&&new Date(r.exp)<=new Date())r.status='expired'});return S.rows.filter(r=>(S.role==='admin'||r.owner===ME)&&(r.status!=='removed'||S.removed)).filter(r=>[r.name,r.email,r.project,r.by].some(v=>v.toLowerCase().includes(S.query.toLowerCase()))).sort((a,b)=>String(a[S.sort]||'').localeCompare(String(b[S.sort]||''))*S.dir)}
+function table(){var rows=scope();var h='<div class="toolbar"><input type="search" id="search" placeholder="Search" aria-label="Search" value="'+esc(S.query)+'"><label class="toggle"><input type="checkbox" id="removed" '+(S.removed?'checked':'')+'> Show removed guests</label></div><div class="tw"><table><thead><tr>'+[['Name','name'],['Email','email'],['Projects',''],['Permissions',''],['Access until','exp'],['Invited by','by'],['','']].map(([n,k])=>'<th '+(k?'class="s" data-sort="'+k+'"':'')+'>'+n+(S.sort===k?(S.dir===1?' ↑':' ↓'):'')+'</th>').join('')+'</tr></thead><tbody>';
+h+=rows.map(r=>'<tr class="'+((r.status==='expired'||r.status==='removed')?'inactive':'')+'"><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td><a href="#" class="pl" data-project="'+r.id+'">'+esc(r.project)+'</a></td><td><button class="permb" data-edit="'+r.id+'"><b>SCOPE+ '+r.sc.length+' of '+total('sc')+'</b><b>BUYOUT+ '+r.bo.length+' of '+total('bo')+'</b></button></td><td>'+(r.status==='expired'||r.status==='removed'?'<span class="badge">'+r.status.toUpperCase()+'</span>':'<button class="editdate" data-edit="'+r.id+'">'+fmt(r.exp)+'</button>')+'</td><td>'+esc(r.by)+'</td><td class="act"><button class="btn ghost" data-action="'+r.id+'">'+(r.status==='expired'||r.status==='removed'?'Return':'Remove')+'</button></td></tr>').join('');
+h+='</tbody></table></div>'; $('tbl').innerHTML=h;
+$('search').oninput=e=>{S.query=e.target.value;let pos=e.target.selectionStart;table();$('search').focus();$('search').setSelectionRange(pos,pos)};$('removed').onchange=e=>{S.removed=e.target.checked;table()};
+document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{let k=b.dataset.sort;S.dir=S.sort===k?-S.dir:1;S.sort=k;table()});
+document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>config(+b.dataset.edit,false));document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{let r=S.rows.find(x=>x.id==b.dataset.action);if(r.status==='expired'||r.status==='removed')config(r.id,true);else remove(r.id)});
+document.querySelectorAll('[data-project]').forEach(a=>a.onclick=e=>{e.preventDefault();toast('Project page is outside this prototype')});}
+function render(){var admin=S.role==='admin';$('links').innerHTML=['Home','Projects','Contacts'].concat(admin?['Admin panel']:[]).map(x=>'<a class="'+((admin?x==='Admin panel':x==='Projects')?'on':'')+'">'+x+'</a>').join('');$('user').innerHTML=admin?'Super Admin<small>super_admin@example.com</small>':ME+'<small>Project owner</small>';$('title').textContent=admin?'Admin panel':'Projects';$('scopeNote').textContent=admin?'Scope: all projects':'Scope: owned projects';var tabs=admin?[['users','Users'],['roles','Roles permissions'],['company','Company settings'],['guests','Guests']]:[['active','Active'],['templates','Templates'],['archived','Archived'],['guests','Guests']];$('tabsBar').innerHTML='<div class="seg">'+tabs.map(t=>'<button data-t="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';$('content').innerHTML=S.tab==='guests'?'<div id="tbl"></div>':'';if(S.tab==='guests')table();document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render()});document.querySelectorAll('#roleTog button').forEach(b=>b.className=b.dataset.r===S.role?'on':'')}
+function close(){$('scrim').className='scrim'}
+function show(html){$('modal').innerHTML=html;$('scrim').className='scrim on';$('x').onclick=$('no').onclick=close}
+function config(id,returning){var r=S.rows.find(x=>x.id===id),draft={sc:r.sc.slice(),bo:r.bo.slice(),exp: r.status==='expired'?'':r.exp},tab='sc';function draw(){var n=0;var list=PERMS[tab].groups.map(g=>'<div class="pg">'+esc(g[0])+'</div>'+g[1].map(label=>{var i=n++;return '<label class="pi"><input type="checkbox" data-per="'+i+'" '+(draft[tab].includes(i)?'checked':'')+'>'+esc(label)+'</label>'}).join('')).join('');show('<h3>Access configuration<button id="x" aria-label="Close">×</button></h3><p>'+esc(r.name||r.email)+' · '+esc(r.project)+'</p><label>Access until <input type="datetime-local" id="expiry" value="'+esc(draft.exp)+'"></label><div class="seg" style="margin-top:14px;display:flex"><button data-app="sc" class="'+(tab==='sc'?'on':'')+'">SCOPE+</button><button data-app="bo" class="'+(tab==='bo'?'on':'')+'">BUYOUT+</button></div><label><input type="checkbox" id="all" '+(draft[tab].length===total(tab)?'checked':'')+'> Select all</label><div class="plist">'+list+'</div><div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn solid" id="yes">Save</button></div>');$('expiry').onchange=e=>draft.exp=e.target.value;document.querySelectorAll('[data-app]').forEach(b=>b.onclick=()=>{draft.exp=$('expiry').value;tab=b.dataset.app;draw()});document.querySelectorAll('[data-per]').forEach(c=>c.onchange=()=>{let i=+c.dataset.per;draft[tab]=draft[tab].filter(x=>x!==i);if(c.checked)draft[tab].push(i);$('all').checked=draft[tab].length===total(tab)});$('all').onchange=e=>{draft[tab]=e.target.checked?Array.from({length:total(tab)},(_,i)=>i):[];draft.exp=$('expiry').value;draw()};$('yes').onclick=()=>{r.sc=draft.sc;r.bo=draft.bo;r.exp=$('expiry').value;if(returning)r.status=r.name?'active':'pending';if(r.exp&&new Date(r.exp)<=new Date())r.status='expired';save();close();render()}}draw()}
+function remove(id){var r=S.rows.find(x=>x.id===id);show('<h3>Remove user<button id="x" aria-label="Close">×</button></h3><p>Remove '+esc(r.name||r.email)+' from '+esc(r.project)+'?</p><div class="acts"><button class="btn ghost" id="no">Cancel</button><button class="btn solid" id="yes">Remove</button></div>');$('yes').onclick=()=>{r.status='removed';save();close();render();toast('User removed successfully')}}
+function toast(t){$('toastTxt').textContent=t;$('undo').style.display='none';$('toast').className='toast on';setTimeout(()=>$('toast').className='toast',3200)}
+$('scrim').onclick=e=>{if(e.target===$('scrim'))close()};document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('roleTog').onclick=e=>{if(e.target.dataset.r){S.role=e.target.dataset.r;S.tab='guests';S.query='';S.removed=false;render()}};$('reset').onclick=()=>{S.rows=structuredClone(seed);S.query='';S.removed=false;save();render()};render();
 })();
-</script>
-</body></html>
+</script></body></html>
